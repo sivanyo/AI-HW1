@@ -50,7 +50,7 @@ class AStar(BestFirstSearch):
         Notice: You may use `search_node.g_cost`, `self.heuristic_weight`, and `self.heuristic_function`.
         """
 
-        result = (self.heuristic_function.estimate(search_node) * self.heuristic_weight) + (
+        result = (self.heuristic_function.estimate(search_node.state) * self.heuristic_weight) + (
                 1 - self.heuristic_weight) * search_node.g_cost
 
         # raise NotImplementedError  # TODO: remove this line!

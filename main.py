@@ -38,8 +38,8 @@ def plot_distance_and_expanded_wrt_weight_figure(
     # See documentation here:
     # https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.plot.html
     # You can also Google for additional examples.
-    raise NotImplementedError  # TODO: remove this line!
-    p1, = ax1.plot(...)  # TODO: pass the relevant params instead of `...`.
+
+    p1, = ax1.plot(total_cost)
 
     # ax1: Make the y-axis label, ticks and tick labels match the line color.
     ax1.set_ylabel('Solution cost', color='b')
@@ -52,8 +52,8 @@ def plot_distance_and_expanded_wrt_weight_figure(
     # TODO: Plot the total expanded with ax2. Use `ax2.plot(...)`.
     # TODO: Make this curve colored red with solid line style.
     # TODO: Set its label to be '#Expanded states'.
-    raise NotImplementedError  # TODO: remove this line!
-    p2, = ax2.plot(...)  # TODO: pass the relevant params instead of `...`.
+
+    p2, = ax2.plot(total_nr_expanded)
 
     # ax2: Make the y-axis label, ticks and tick labels match the line color.
     ax2.set_ylabel('#Expanded states', color='r')
@@ -85,7 +85,21 @@ def run_astar_for_weights_in_range(heuristic_type: HeuristicFunctionType, proble
     #     Don't forget to pass `max_nr_states_to_expand` to the AStar c'tor.
     #  3. Call the function `plot_distance_and_expanded_wrt_weight_figure()`
     #     with these 3 generated lists.
-    raise NotImplementedError  # TODO: remove this line!
+    arr = np.linspace(low_heuristic_weight, high_heuristic_weight, n)
+    costs = []
+    expended = []
+    weights = []
+    for weight in arr:
+        toy_map_problem = MapProblem(streets_map, 54, 549)
+        uc = AStar(AirDistHeuristic, weight, max_nr_states_to_expand)
+        res = uc.solve_problem(toy_map_problem)
+        if res.is_solution_found:
+            costs.append(res.solution_g_cost)
+            expended.append(res.nr_expanded_states)
+            weights.append(weight)
+
+    plot_distance_and_expanded_wrt_weight_figure(problem.name,
+                                                 weights, costs, expended)
 
 
 # --------------------------------------------------------------------
@@ -112,12 +126,14 @@ def toy_map_problem_experiments():
     print(res)
     # Notice: AStar constructor receives the heuristic *type* (ex: `MyHeuristicClass`),
     #         and NOT an instance of the heuristic (eg: not `MyHeuristicClass()`).
-    exit()  # TODO: remove!
 
     # Ex.13
     # TODO: create an instance of `AStar` with the `AirDistHeuristic`,
     #       solve the same `toy_map_problem` with it and print the results (as before).
-    exit()  # TODO: remove!
+    toy_map_problem = MapProblem(streets_map, 54, 549)
+    uc2 = AStar(AirDistHeuristic)
+    res = uc2.solve_problem(toy_map_problem)
+    print(res)
 
     # Ex.15
     # TODO:
@@ -128,6 +144,7 @@ def toy_map_problem_experiments():
     #     (upper in this file).
     #  3. Call here the function `run_astar_for_weights_in_range()`
     #     with `AirDistHeuristic` and `toy_map_problem`.
+    run_astar_for_weights_in_range(AirDistHeuristic, toy_map_problem)
     exit()  # TODO: remove!
 
 
@@ -234,7 +251,8 @@ def multiple_objectives_mda_problem_experiments():
     print('Solve the MDA problem (moderate input, distance & tests-travel-distance objectives).')
 
     moderate_mda_problem_with_distance_cost = get_mda_problem('moderate', MDAOptimizationObjective.Distance)
-    moderate_mda_problem_with_tests_travel_dist_cost = get_mda_problem('moderate', MDAOptimizationObjective.TestsTravelDistance)
+    moderate_mda_problem_with_tests_travel_dist_cost = get_mda_problem('moderate',
+                                                                       MDAOptimizationObjective.TestsTravelDistance)
 
     # Ex.35
     # TODO: create an instance of `AStar` with the `MDATestsTravelDistToNearestLabHeuristic`,
