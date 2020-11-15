@@ -51,7 +51,7 @@ class CachedMapDistanceFinder:
         # else need to solve new problem
         problem = MapProblem(self.streets_map, src_junction.index, tgt_junction.index)
 
-        sol = self.map_problem_solver.solve_problem(problem).solution_cost  ## maybe g cost ?
+        sol = self.map_problem_solver.solve_problem(problem).solution_cost  ## TODO maybe g cost ?
         # save new sol to cache
         self._insert_to_cache((src_junction.index, tgt_junction.index), sol)
         # return new sol
