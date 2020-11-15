@@ -8,7 +8,6 @@ from .map_heuristics import AirDistHeuristic
 from .cached_map_distance_finder import CachedMapDistanceFinder
 from .mda_problem_input import *
 
-
 __all__ = ['MDAState', 'MDACost', 'MDAProblem', 'MDAOptimizationObjective']
 
 
@@ -80,7 +79,7 @@ class MDAState(GraphProblemState):
         #   implements the `__eq__()` method. The types `frozenset`, `ApartmentWithSymptomsReport`, `Laboratory`
         #   are also comparable (in the same manner).
         # raise NotImplementedError  # TODO: remove this line.
-        return self.current_site == other.current_site # check this later...
+        return self.current_site == other.current_site  # check this later...
 
     def __hash__(self):
         """
@@ -103,6 +102,7 @@ class MDAState(GraphProblemState):
         """
         # raise NotImplementedError  # TODO: remove this line.
         return sum([item.nr_roommates for item in self.tests_on_ambulance])
+
 
 class MDAOptimizationObjective(Enum):
     Distance = 'Distance'
@@ -216,7 +216,6 @@ class MDAProblem(GraphProblem):
         assert isinstance(state_to_expand, MDAState)
         # raise NotImplementedError  # TODO: remove this line!
 
-
     def get_operator_cost(self, prev_state: MDAState, succ_state: MDAState) -> MDACost:
         """
         Calculates the operator cost (of type `MDACost`) of an operator (moving from the `prev_state`
@@ -249,23 +248,38 @@ class MDAProblem(GraphProblem):
         """
         # raise NotImplementedError  # TODO: remove this line!
 
+        # distance_cost: float = 0.0
+        # monetary_cost: float = 0.0
+        # tests_travel_distance_cost: float = 0.0
+        # optimization_objective: MDAOptimizationObjective = MDAOptimizationObjective.Monetary
+
         dis = self.map_distance_finder.get_map_cost_between(prev_state.current_location, succ_state.current_location)
         if dis is None:
             dis = float('inf')
 
-        active_fridges = math.ceil(prev_state.get_total_nr_tests_taken_and_stored_on_ambulance() / self.problem_input.ambulance.fridge_capacity)
+        # calc the fees of the lab
+        lab_fee = 0
+        if succ_state in self.problem_input.laboratories:
+            lab_fee = Laboratory(succ_state).tests_transfer_cost
+            # check if we revisit (extra cost)
+            if succ_state in prev_state.visited_labs:
+                lab_fee += Laboratory(succ_state).revisit_extra_cost
 
-        fridges_gas_consumption = sum(self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter[i] for i in range(active_fridges))
+        active_fridges = math.ceil(
+            prev_state.get_total_nr_tests_taken_and_stored_on_ambulance() / self.problem_input.ambulance.fridge_capacity)
 
-        monetary_cost = self.problem_input.gas_liter_price * (self.problem_input.ambulance.drive_gas_consumption_liter_per_meter + fridges_gas_consumption) * dis
+        fridges_gas_consumption = sum(
+            self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter[i] for i in range(active_fridges))
 
-        if succ_state.current_location.index in self.problem_input.laboratories:
-            if succ_state.current_location.index in prev_state.visited_labs:
-                # monetary_cost+= self.problem_input.llllllllllllllllllllllllllllllll # TODO WTF
+        # calc the cost of the ride = (drive gas consumption + fridges consumption ) * gas price
+        temp = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter * dis + fridges_gas_consumption
+        gas_for_ride = self.problem_input.gas_liter_price * temp
 
-        test_travel_cost = prev_state.get_total_nr_tests_taken_and_stored_on_ambulance() * dis
+        monetary_cost = lab_fee + gas_for_ride
 
-        return MDACost(dis, monetary_cost, test_travel_cost)
+        test_travel_cost = float(prev_state.get_total_nr_tests_taken_and_stored_on_ambulance())*dis
+
+        return MDACost(dis, monetary_cost, test_travel_cost, self.optimization_objective)
 
     def is_goal(self, state: GraphProblemState) -> bool:
         """
@@ -276,13 +290,20 @@ class MDAProblem(GraphProblem):
         """
         assert isinstance(state, MDAState)
         # raise NotImplementedError  # TODO: remove the line!
+        # state is goal if :
+        # is laboratory
+        # wh have been in all the apartments
+        # it has no tests on the ambulance
 
-        # TODO check wich one is the currect return
+        is_lab = isinstance(self, Laboratory)
+        visited_all = self.get_reported_apartments_waiting_to_visit() == set()
+        no_tests_on_amb = state.tests_on_ambulance == set()
+        # TODO check which one is the correct return val
         # return self.get_reported_apartments_waiting_to_visit() == set() and \
         #        state.current_location in self.problem_input.laboratories
-        return self.get_reported_apartments_waiting_to_visit() == set() and \
-                (state.current_location in self.problem_input.laboratories) and state.tests_on_ambulance == set()
-
+        # return self.get_reported_apartments_waiting_to_visit() == set() and \
+        #        (state.current_location in self.problem_input.laboratories) and state.tests_on_ambulance == set()
+        return is_lab and visited_all and no_tests_on_amb
 
     def get_zero_cost(self) -> Cost:
         """
@@ -309,9 +330,10 @@ class MDAProblem(GraphProblem):
                 generated set.
             Note: This method can be implemented using a single line of code. Try to do so.
         """
+        self.problem_input.laboratories
         raise NotImplementedError  # TODO: remove this line!
         return list(set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance) -
-                    set(state.tests_transferred_to_lab)).sort(key=lambda x: x.index) ###TODO WTF
+                    set(state.tests_transferred_to_lab)).sort(key=lambda x: x.index)  ###TODO WTF
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
         """
@@ -323,4 +345,5 @@ class MDAProblem(GraphProblem):
             Use the method `self.get_reported_apartments_waiting_to_visit(state)`.
             Use python's `sorted(some_list, key=...)` function.
         """
+
         raise NotImplementedError  # TODO: remove this line!
