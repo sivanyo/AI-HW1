@@ -217,7 +217,7 @@ class MDAProblem(GraphProblem):
         # operator_name: Optional[str] = None
 
         assert isinstance(state_to_expand, MDAState)
-
+        junctions = []
         for app in self.get_reported_apartments_waiting_to_visit(state_to_expand):
             # need to check if can visit
             if state_to_expand.nr_matoshim_on_ambulance >= app.nr_roommates and \
@@ -229,26 +229,28 @@ class MDAProblem(GraphProblem):
                                  state_to_expand.nr_matoshim_on_ambulance - app.nr_roommates,
                                  state_to_expand.visited_labs)
                 operator_cost = self.get_operator_cost(state_to_expand, state)
-                yield OperatorResult(state, operator_cost, name)
+                junctions.append(OperatorResult(state, operator_cost, name))
+        if not isinstance(state_to_expand, Laboratory):
+            for lab in self.problem_input.laboratories:
+                # need to check if can visit
+                if len(state_to_expand.tests_on_ambulance) != 0 or lab not in state_to_expand.visited_labs:
+                    name = "go to lab " + lab.name
+                    if lab not in state_to_expand.visited_labs:
+                        # we will take the matoshim
+                        state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
+                                                                           state_to_expand.tests_on_ambulance),
+                                         state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
+                                         frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
+                    else:
+                        state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
+                                                                           state_to_expand.tests_on_ambulance),
+                                         state_to_expand.nr_matoshim_on_ambulance,
+                                         frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
+                    operator_cost = self.get_operator_cost(state_to_expand, state)
+                    junctions.append(OperatorResult(state, operator_cost, name))
 
-        for lab in self.problem_input.laboratories:
-            # need to check if can visit
-            if len(state_to_expand.tests_on_ambulance) != 0 or lab not in state_to_expand.visited_labs:
-                name = "go to lab " + lab.name
-                if lab not in state_to_expand.visited_labs:
-                    # we will take the matoshim
-                    state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
-                                                                       state_to_expand.tests_on_ambulance),
-                                     state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
-                                     frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
-                else:
-                    state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
-                                                                       state_to_expand.tests_on_ambulance),
-                                     state_to_expand.nr_matoshim_on_ambulance,
-                                     frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
-                operator_cost = self.get_operator_cost(state_to_expand, state)
-                yield OperatorResult(state, operator_cost, name)
-
+        for item in junctions:
+            yield item
         # raise NotImplementedError  # TODO: remove this line!
 
     def get_operator_cost(self, prev_state: MDAState, succ_state: MDAState) -> MDACost:
