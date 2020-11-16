@@ -46,8 +46,8 @@ class CachedMapDistanceFinder:
         The cache key should include the source & target indices.
         """
 
-        if self._is_in_cache(src_junction.index, tgt_junction.index):
-            return self._get_from_cache(src_junction.index, tgt_junction.index)
+        if self._is_in_cache((src_junction.index, tgt_junction.index)):
+            return self._get_from_cache((src_junction.index, tgt_junction.index))
         # else need to solve new problem
         problem = MapProblem(self.streets_map, src_junction.index, tgt_junction.index)
 
