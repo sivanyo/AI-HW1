@@ -292,12 +292,13 @@ class MDAProblem(GraphProblem):
 
         dis = self.map_distance_finder.get_map_cost_between(prev_state.current_location, succ_state.current_location)
         if dis is None:
-            dis = float('inf')
+            return MDACost(float('inf'), float('inf'), float('inf'), self.optimization_objective)
 
         # calc the fees of the lab
         lab_fee = 0
         if isinstance(succ_state.current_site, Laboratory):
-            lab_fee = succ_state.current_site.tests_transfer_cost
+            if prev_state.tests_on_ambulance:
+                lab_fee += succ_state.current_site.tests_transfer_cost
             # check if we revisit (extra cost)
             if succ_state.current_site in prev_state.visited_labs:
                 lab_fee += succ_state.current_site.revisit_extra_cost
