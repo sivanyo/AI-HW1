@@ -231,7 +231,7 @@ class MDAProblem(GraphProblem):
                                 state_to_expand.visited_labs)
                 yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "visit " + app.reporter_name)
 
-        if not isinstance(state_to_expand.current_site, Laboratory):
+        if 1 :#not isinstance(state_to_expand.current_site, Laboratory): // TODO HOLLY BUG
             for lab in self.problem_input.laboratories:
                 if lab not in state_to_expand.visited_labs:
                     succ = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
