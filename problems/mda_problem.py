@@ -335,9 +335,10 @@ class MDAProblem(GraphProblem):
         # wh have been in all the apartments
         # it has no tests on the ambulance
 
-        return isinstance(state.current_site, Laboratory) and \
-               len(self.get_reported_apartments_waiting_to_visit(state)) == 0 and \
-               state.tests_on_ambulance == frozenset()
+        return state.tests_transferred_to_lab == set(self.problem_input.reported_apartments)
+        # return isinstance(state.current_site, Laboratory) and \
+        #        len(self.get_reported_apartments_waiting_to_visit(state)) == 0 and \
+        #        state.tests_on_ambulance == frozenset()
 
     def get_zero_cost(self) -> Cost:
         """
