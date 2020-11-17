@@ -271,38 +271,51 @@ class MDAProblem(GraphProblem):
                                 its first `k` items and until the `n`-th item.
             You might find this tip useful for summing a slice of a collection.
         """
-        # raise NotImplementedError  # TODO: remove this line!
-
-        # distance_cost: float = 0.0
-        # monetary_cost: float = 0.0
-        # tests_travel_distance_cost: float = 0.0
-        # optimization_objective: MDAOptimizationObjective = MDAOptimizationObjective.Monetary
-
         dis = self.map_distance_finder.get_map_cost_between(prev_state.current_location, succ_state.current_location)
         if dis is None:
             # print('im here')
             return MDACost(float('inf'), float('inf'), float('inf'), self.optimization_objective)
 
         # calc the fees of the lab
-        lab_fee = 0
-        if isinstance(succ_state.current_site, Laboratory):
-            if prev_state.tests_on_ambulance:
-                lab_fee += succ_state.current_site.tests_transfer_cost
-            # check if we revisit (extra cost)
-            if succ_state.current_site in prev_state.visited_labs:
-                lab_fee += succ_state.current_site.revisit_extra_cost
-
+        gas_price = self.problem_input.gas_liter_price
         active_fridges = math.ceil(
             prev_state.get_total_nr_tests_taken_and_stored_on_ambulance() / self.problem_input.ambulance.fridge_capacity)
 
         fridges_gas_consumption = sum(
             self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter[i] for i in range(active_fridges))
+        drive_gas_consumption: float = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter
 
-        # calc the cost of the ride = (drive gas consumption + fridges consumption ) * gas price
-        temp = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter * dis + fridges_gas_consumption
-        gas_for_ride = self.problem_input.gas_liter_price * temp
+        is_lab_ind = True if isinstance(succ_state.current_site, Laboratory) else False
+        revisit_ind = True if succ_state.current_site in succ_state.visited_labs else False
+        tests_ind = True if succ_state.tests_on_ambulance else False
 
-        monetary_cost = lab_fee + gas_for_ride
+        lab_transfer_cost = succ_state.current_site.tests_transfer_cost if \
+            isinstance(succ_state.current_site, Laboratory) else 0
+        lab_revisit_cost = succ_state.current_site.revisit_extra_cost if\
+            isinstance(succ_state.current_site, Laboratory) else 0
+        monetary_cost = gas_price * (drive_gas_consumption + fridges_gas_consumption) * dis + is_lab_ind * (
+                    tests_ind * lab_transfer_cost + revisit_ind * lab_revisit_cost)
+
+        # lab_fee = 0
+        # if isinstance(succ_state.current_site, Laboratory):
+        #     if prev_state.tests_on_ambulance:
+        #         lab_fee += succ_state.current_site.tests_transfer_cost
+        #     # check if we revisit (extra cost)
+        #     if succ_state.current_site in prev_state.visited_labs:
+        #         lab_fee += succ_state.current_site.revisit_extra_cost
+        # gas_price = self.problem_input.gas_liter_price
+        #
+        # active_fridges = math.ceil(
+        #     prev_state.get_total_nr_tests_taken_and_stored_on_ambulance() / self.problem_input.ambulance.fridge_capacity)
+        #
+        # fridges_gas_consumption = sum(
+        #     self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter[i] for i in range(active_fridges))
+        #
+        # # calc the cost of the ride = (drive gas consumption + fridges consumption ) * gas price
+        # temp = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter * dis + fridges_gas_consumption
+        # gas_for_ride = self.problem_input.gas_liter_price * temp
+        #
+        # monetary_cost = lab_fee + gas_for_ride
 
         test_travel_cost = dis * prev_state.get_total_nr_tests_taken_and_stored_on_ambulance()
 
@@ -357,8 +370,8 @@ class MDAProblem(GraphProblem):
         k = list(l1 - set(state.tests_transferred_to_lab))
         k.sort(key=lambda x: x.report_id)
         return k
-        # TODO : change to 1 line !!!
-        # return (list(set(self.problem_input.reported_apartments) - set(state.tests_transferred_to_lab) - set(state.tests_on_ambulance))).sort(key=lambda x:x.report_id)
+        # TODO : change to 1 line !!! return (list(set(self.problem_input.reported_apartments) - set(
+        #  state.tests_transferred_to_lab) - set(state.tests_on_ambulance))).sort(key=lambda x:x.report_id)
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
         """
