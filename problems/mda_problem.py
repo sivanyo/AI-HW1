@@ -230,7 +230,7 @@ class MDAProblem(GraphProblem):
                                  state_to_expand.visited_labs)
                 operator_cost = self.get_operator_cost(state_to_expand, state)
                 junctions.append(OperatorResult(state, operator_cost, name))
-        if not isinstance(state_to_expand, Laboratory):
+        if not isinstance(state_to_expand.current_site, Laboratory):
             for lab in self.problem_input.laboratories:
                 # need to check if can visit
                 if len(state_to_expand.tests_on_ambulance) != 0 or lab not in state_to_expand.visited_labs:
@@ -292,6 +292,7 @@ class MDAProblem(GraphProblem):
 
         dis = self.map_distance_finder.get_map_cost_between(prev_state.current_location, succ_state.current_location)
         if dis is None:
+            # print('im here')
             return MDACost(float('inf'), float('inf'), float('inf'), self.optimization_objective)
 
         # calc the fees of the lab
@@ -333,14 +334,21 @@ class MDAProblem(GraphProblem):
         # wh have been in all the apartments
         # it has no tests on the ambulance
 
-        is_lab = isinstance(self, Laboratory)
-        visited_all = self.get_reported_apartments_waiting_to_visit(state) == set()
-        no_tests_on_amb = state.tests_on_ambulance == set()
+        is_lab = isinstance(state.current_site, Laboratory)
+        visited_all = len(self.get_reported_apartments_waiting_to_visit(state)) == 0
+        no_tests_on_amb = state.tests_on_ambulance == frozenset()
         # TODO check which one is the correct return val
         # return self.get_reported_apartments_waiting_to_visit() == set() and \
         #        state.current_location in self.problem_input.laboratories
         # return self.get_reported_apartments_waiting_to_visit() == set() and \
         #        (state.current_location in self.problem_input.laboratories) and state.tests_on_ambulance == set()
+        # str1 = 'is lab is' + str(is_lab)
+        # print(str1)
+        str21 = 'visited all is ' + str(visited_all)
+        print(str21)
+        # str3 = 'no_tests_on_amb ' + str(no_tests_on_amb)
+        # print(str3)
+
         return is_lab and visited_all and no_tests_on_amb
 
     def get_zero_cost(self) -> Cost:
@@ -369,9 +377,11 @@ class MDAProblem(GraphProblem):
             Note: This method can be implemented using a single line of code. Try to do so.
         """
         # raise NotImplementedError  # TODO: remove this line!
-        l = list(set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance))
-        k = list(set(l) - set(state.tests_transferred_to_lab))
+        l1 = set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance)
+        k = list(l1 - set(state.tests_transferred_to_lab))
         k.sort(key=lambda x: x.report_id)
+        if len(k) == 2:
+            print('ya')
         # TODO : change to 1 line !!!
         return k
 
