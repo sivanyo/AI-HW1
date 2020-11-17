@@ -212,9 +212,6 @@ class MDAProblem(GraphProblem):
             - Other fields of the state and the problem input.
             - Python's sets union operation (`some_set_or_frozenset | some_other_set_or_frozenset`).
         """
-        # successor_state: GraphProblemState
-        # operator_cost: Cost
-        # operator_name: Optional[str] = None
 
         assert isinstance(state_to_expand, MDAState)
 
@@ -237,53 +234,11 @@ class MDAProblem(GraphProblem):
                                     frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
                     yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
                 elif state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() > 0:
-                    succ = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
-                                                                      state_to_expand.tests_on_ambulance),
-                                    state_to_expand.nr_matoshim_on_ambulance,
-                                    frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
+                    succ = MDAState(lab, frozenset(),
+                                    frozenset.union(state_to_expand.tests_transferred_to_lab,
+                                                    state_to_expand.tests_on_ambulance),
+                                    state_to_expand.nr_matoshim_on_ambulance, state_to_expand.visited_labs)
                     yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
-
-        #
-        # junctions = []
-        # for app in self.get_reported_apartments_waiting_to_visit(state_to_expand):
-        #     # need to check if can visit
-        #     if state_to_expand.nr_matoshim_on_ambulance >= app.nr_roommates and \
-        #             app.nr_roommates <= self.problem_input.ambulance.fridge_capacity - \
-        #             state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance():
-        #         name = "visit " + app.reporter_name
-        #         state = MDAState(app, frozenset.union(state_to_expand.tests_on_ambulance, frozenset([app])),
-        #                          state_to_expand.tests_transferred_to_lab,
-        #                          state_to_expand.nr_matoshim_on_ambulance - app.nr_roommates,
-        #                          state_to_expand.visited_labs)
-        #         operator_cost = self.get_operator_cost(state_to_expand, state)
-        #         junctions.append(OperatorResult(state, operator_cost, name))
-        # if not isinstance(state_to_expand.current_site, Laboratory):
-        #     for lab in self.problem_input.laboratories:
-        #         # need to check if can visit
-        #         if len(state_to_expand.tests_on_ambulance) != 0 or lab not in state_to_expand.visited_labs:
-        #             name = "go to lab " + lab.name
-        #             if lab not in state_to_expand.visited_labs and len(state_to_expand.tests_on_ambulance) != 0:
-        #                 # we will take the matoshim, we will give them tests
-        #                 state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
-        #                                                                    state_to_expand.tests_on_ambulance),
-        #                                  state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
-        #                                  frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
-        #             elif lab not in state_to_expand.visited_labs:
-        #                 # we will only take matoshim
-        #                 state = MDAState(lab, state_to_expand.tests_on_ambulance, state_to_expand.tests_transferred_to_lab,
-        #                                  state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
-        #                                  frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
-        #             else:
-        #                 # we will only give them tests
-        #                 state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
-        #                                                                    state_to_expand.tests_on_ambulance),
-        #                                  state_to_expand.nr_matoshim_on_ambulance,
-        #                                  state_to_expand.visited_labs)
-        #             operator_cost = self.get_operator_cost(state_to_expand, state)
-        #             junctions.append(OperatorResult(state, operator_cost, name))
-        #
-        # for item in junctions:
-        #     yield item
         # raise NotImplementedError  # TODO: remove this line!
 
     def get_operator_cost(self, prev_state: MDAState, succ_state: MDAState) -> MDACost:
@@ -349,7 +304,7 @@ class MDAProblem(GraphProblem):
 
         monetary_cost = lab_fee + gas_for_ride
 
-        test_travel_cost = float(prev_state.get_total_nr_tests_taken_and_stored_on_ambulance()) * dis
+        test_travel_cost = dis * prev_state.get_total_nr_tests_taken_and_stored_on_ambulance()
 
         return MDACost(dis, monetary_cost, test_travel_cost, self.optimization_objective)
 
@@ -367,22 +322,9 @@ class MDAProblem(GraphProblem):
         # wh have been in all the apartments
         # it has no tests on the ambulance
 
-        is_lab = isinstance(state.current_site, Laboratory)
-        visited_all = len(self.get_reported_apartments_waiting_to_visit(state)) == 0
-        no_tests_on_amb = state.tests_on_ambulance == frozenset()
-        # TODO check which one is the correct return val
-        # return self.get_reported_apartments_waiting_to_visit() == set() and \
-        #        state.current_location in self.problem_input.laboratories
-        # return self.get_reported_apartments_waiting_to_visit() == set() and \
-        #        (state.current_location in self.problem_input.laboratories) and state.tests_on_ambulance == set()
-        # str1 = 'is lab is' + str(is_lab)
-        # print(str1)
-        str21 = 'visited all is ' + str(visited_all)
-        # print(str21)
-        # str3 = 'no_tests_on_amb ' + str(no_tests_on_amb)
-        # print(str3)
-
-        return is_lab and visited_all and no_tests_on_amb
+        return isinstance(state.current_site, Laboratory) and \
+               len(self.get_reported_apartments_waiting_to_visit(state)) == 0 and \
+               state.tests_on_ambulance == frozenset()
 
     def get_zero_cost(self) -> Cost:
         """
@@ -410,11 +352,13 @@ class MDAProblem(GraphProblem):
             Note: This method can be implemented using a single line of code. Try to do so.
         """
         # raise NotImplementedError  # TODO: remove this line!
+
         l1 = set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance)
         k = list(l1 - set(state.tests_transferred_to_lab))
         k.sort(key=lambda x: x.report_id)
-        # TODO : change to 1 line !!!
         return k
+        # TODO : change to 1 line !!!
+        # return (list(set(self.problem_input.reported_apartments) - set(state.tests_transferred_to_lab) - set(state.tests_on_ambulance))).sort(key=lambda x:x.report_id)
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
         """
@@ -426,12 +370,9 @@ class MDAProblem(GraphProblem):
             Use the method `self.get_reported_apartments_waiting_to_visit(state)`.
             Use python's `sorted(some_list, key=...)` function.
         """
-        # res = []
-        # for app in self.get_reported_apartments_waiting_to_visit(state)
-        #
+
         res = list(x.location for x in self.get_reported_apartments_waiting_to_visit(state))
         res.append(state.current_location)
         sorted(res, key=lambda x: x.index)
-        # res.sort(key=lambda x: x.report_id)
         return res
         # raise NotImplementedError  # TODO: remove this line!
