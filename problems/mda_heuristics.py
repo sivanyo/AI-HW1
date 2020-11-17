@@ -48,7 +48,12 @@ class MDAMaxAirDistHeuristic(HeuristicFunction):
         if len(all_certain_junctions_in_remaining_ambulance_path) < 2:
             return 0
 
-        return 10  # TODO: modify this line.
+        res = max(self.cached_air_distance_calculator.get_air_distance_between_junctions(junc1, junc2)
+                  for junc1 in all_certain_junctions_in_remaining_ambulance_path
+                  for junc2 in all_certain_junctions_in_remaining_ambulance_path
+                  if junc1 != junc2)
+
+        return res
 
 
 class MDASumAirDistHeuristic(HeuristicFunction):
@@ -96,16 +101,12 @@ class MDASumAirDistHeuristic(HeuristicFunction):
         all_certain_junctions_in_remaining_ambulance_path.remove(curr)
 
         while len(all_certain_junctions_in_remaining_ambulance_path) > 0:
-            next_junc = min(all_certain_junctions_in_remaining_ambulance_path,key=lambda junction:
+            next_junc = min(all_certain_junctions_in_remaining_ambulance_path, key=lambda junction:
                             self.cached_air_distance_calculator.get_air_distance_between_junctions(curr, junction))
             all_certain_junctions_in_remaining_ambulance_path.remove(next_junc)
             total_dist += self.cached_air_distance_calculator.get_air_distance_between_junctions(curr, next_junc)
             curr = next_junc
         return total_dist
-
-
-
-
 
         # raise NotImplementedError  # TODO: remove this line and complete the missing part here!
 
