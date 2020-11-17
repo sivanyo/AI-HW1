@@ -79,7 +79,13 @@ class MDAState(GraphProblemState):
         #   implements the `__eq__()` method. The types `frozenset`, `ApartmentWithSymptomsReport`, `Laboratory`
         #   are also comparable (in the same manner).
         # raise NotImplementedError  # TODO: remove this line.
-        return self.current_site == other.current_site  # check this later...
+
+        return self.current_site == other.current_site and \
+            self.tests_transferred_to_lab == other.tests_transferred_to_lab and \
+            self.nr_matoshim_on_ambulance == other.nr_matoshim_on_ambulance and \
+            self.visited_labs == other.visited_labs
+
+        # return self.current_site == other.current_site  # check this later...
 
     def __hash__(self):
         """
