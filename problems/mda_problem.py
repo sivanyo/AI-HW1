@@ -235,17 +235,23 @@ class MDAProblem(GraphProblem):
                 # need to check if can visit
                 if len(state_to_expand.tests_on_ambulance) != 0 or lab not in state_to_expand.visited_labs:
                     name = "go to lab " + lab.name
-                    if lab not in state_to_expand.visited_labs:
-                        # we will take the matoshim
+                    if lab not in state_to_expand.visited_labs and len(state_to_expand.tests_on_ambulance) != 0:
+                        # we will take the matoshim, we will give them tests
                         state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
                                                                            state_to_expand.tests_on_ambulance),
                                          state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
                                          frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
+                    elif lab not in state_to_expand.visited_labs:
+                        # we will only take matoshim
+                        state = MDAState(lab, state_to_expand.tests_on_ambulance, state_to_expand.tests_transferred_to_lab,
+                                         state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
+                                         frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
                     else:
+                        # we will only give them tests
                         state = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
                                                                            state_to_expand.tests_on_ambulance),
                                          state_to_expand.nr_matoshim_on_ambulance,
-                                         frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
+                                         state_to_expand.visited_labs)
                     operator_cost = self.get_operator_cost(state_to_expand, state)
                     junctions.append(OperatorResult(state, operator_cost, name))
 
@@ -345,7 +351,7 @@ class MDAProblem(GraphProblem):
         # str1 = 'is lab is' + str(is_lab)
         # print(str1)
         str21 = 'visited all is ' + str(visited_all)
-        print(str21)
+        # print(str21)
         # str3 = 'no_tests_on_amb ' + str(no_tests_on_amb)
         # print(str3)
 
@@ -380,7 +386,7 @@ class MDAProblem(GraphProblem):
         l1 = set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance)
         k = list(l1 - set(state.tests_transferred_to_lab))
         k.sort(key=lambda x: x.report_id)
-        if len(k) == 2:
+        if len(k) == 1:
             print('ya')
         # TODO : change to 1 line !!!
         return k
