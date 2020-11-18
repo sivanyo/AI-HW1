@@ -215,7 +215,10 @@ def mda_problem_with_astar_experiments():
     # Ex.28
     # TODO: create an instance of `AStar` with the `MDAMSTAirDistHeuristic`,
     #       solve the `moderate_mda_problem_with_distance_cost` with it and print the results.
-    exit()  # TODO: remove!
+    # exit()  # TODO: remove!
+    al2 = AStar(MDAMSTAirDistHeuristic)
+    sol2 = al2.solve_problem(moderate_mda_problem_with_distance_cost)
+    print(sol2)
 
 
 def mda_problem_with_weighted_astar_experiments():
