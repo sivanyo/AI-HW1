@@ -147,7 +147,6 @@ class MDAMSTAirDistHeuristic(HeuristicFunction):
               `.size(weight='weight')`. Do not manually sum the edges' weights.
         """
         graph = nx.Graph()
-        graph.add_nodes_from(junctions)
         for junc1 in junctions:
             for junc2 in junctions:
                 if junc1.index < junc2.index:
