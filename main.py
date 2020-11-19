@@ -4,6 +4,7 @@ from problems import *
 from matplotlib import pyplot as plt
 import numpy as np
 from typing import List, Union, Optional
+import time
 
 # Load the streets map
 streets_map = StreetsMap.load_from_csv(Consts.get_data_file_path("tlv_streets_map.csv"))
@@ -337,7 +338,10 @@ def mda_problem_with_astar_epsilon_experiments():
     #       Use focal_epsilon=0.23, and max_focal_size=40.
     #       Use within_focal_priority_function=within_focal_h_sum_priority_function. This function
     #        (defined just above) is internally using the `MDASumAirDistHeuristic`.
-    exit()  # TODO: remove!
+    ase = AStarEpsilon(MDAMSTAirDistHeuristic,focal_epsilon=0.23, max_focal_size=40,
+                       within_focal_priority_function=within_focal_h_sum_priority_function)
+    sol = ase.solve_problem(small_mda_problem_with_distance_cost)
+    print(res)
 
 
 def mda_problem_anytime_astar_experiments():
@@ -359,6 +363,7 @@ def mda_problem_anytime_astar_experiments():
 
 def run_all_experiments():
     print('Running all experiments')
+    print(time.ctime())
     toy_map_problem_experiments()
     basic_mda_problem_experiments()
     mda_problem_with_astar_experiments()
@@ -367,6 +372,7 @@ def run_all_experiments():
     multiple_objectives_mda_problem_experiments()
     mda_problem_with_astar_epsilon_experiments()
     mda_problem_anytime_astar_experiments()
+    print(time.ctime())
 
 
 if __name__ == '__main__':
