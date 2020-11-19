@@ -303,11 +303,11 @@ def multiple_objectives_mda_problem_experiments():
     # exit()  # TODO: remove!
     al = AStar(MDAMSTAirDistHeuristic)
     optimal_distance_cost = al.solve_problem(moderate_mda_problem_with_distance_cost)
-    max_distance_cost = 1.6 * optimal_distance_cost.solution_cost.get_g_cost()
+    # max_distance_cost = 1.6 * optimal_distance_cost.solution_cost.get_g_cost()
+    max_distance_cost = 1.6 * optimal_distance_cost.solution_g_cost
     al1 = AStar(MDATestsTravelDistToNearestLabHeuristic,
                 open_criterion=lambda x: x.cost.distance_cost <= max_distance_cost)
     res = al1.solve_problem(moderate_mda_problem_with_tests_travel_dist_cost)
-    print("im here")
     print(res)
 
 
@@ -319,6 +319,7 @@ def mda_problem_with_astar_epsilon_experiments():
     small_mda_problem_with_distance_cost = get_mda_problem('small', MDAOptimizationObjective.Distance)
 
     # Firstly solve the problem with AStar & MST heuristic for having a reference for #devs.
+
     astar = AStar(MDAMSTAirDistHeuristic)
     res = astar.solve_problem(small_mda_problem_with_distance_cost)
     print(res)
