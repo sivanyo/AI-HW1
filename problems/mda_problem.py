@@ -81,9 +81,9 @@ class MDAState(GraphProblemState):
         # raise NotImplementedError  # TODO: remove this line.
 
         return self.current_site == other.current_site and \
-            self.tests_transferred_to_lab == other.tests_transferred_to_lab and \
-            self.nr_matoshim_on_ambulance == other.nr_matoshim_on_ambulance and \
-            self.visited_labs == other.visited_labs
+               self.tests_transferred_to_lab == other.tests_transferred_to_lab and \
+               self.nr_matoshim_on_ambulance == other.nr_matoshim_on_ambulance and \
+               self.visited_labs == other.visited_labs
 
         # return self.current_site == other.current_site  # check this later...
 
@@ -231,20 +231,20 @@ class MDAProblem(GraphProblem):
                                 state_to_expand.visited_labs)
                 yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "visit " + app.reporter_name)
 
-        if 1 :#not isinstance(state_to_expand.current_site, Laboratory): // TODO HOLLY BUG
-            for lab in self.problem_input.laboratories:
-                if lab not in state_to_expand.visited_labs:
-                    succ = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
-                                                                      state_to_expand.tests_on_ambulance),
-                                    state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
-                                    frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
-                    yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
-                elif state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() > 0:
-                    succ = MDAState(lab, frozenset(),
-                                    frozenset.union(state_to_expand.tests_transferred_to_lab,
-                                                    state_to_expand.tests_on_ambulance),
-                                    state_to_expand.nr_matoshim_on_ambulance, state_to_expand.visited_labs)
-                    yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
+        # if 1 :#not isinstance(state_to_expand.current_site, Laboratory): // TODO HOLLY BUG
+        for lab in self.problem_input.laboratories:
+            if lab not in state_to_expand.visited_labs:
+                succ = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
+                                                                  state_to_expand.tests_on_ambulance),
+                                state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
+                                frozenset.union(state_to_expand.visited_labs, frozenset([lab])))
+                yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
+            elif state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() > 0:
+                succ = MDAState(lab, frozenset(),
+                                frozenset.union(state_to_expand.tests_transferred_to_lab,
+                                                state_to_expand.tests_on_ambulance),
+                                state_to_expand.nr_matoshim_on_ambulance, state_to_expand.visited_labs)
+                yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
         # raise NotImplementedError  # TODO: remove this line!
 
     def get_operator_cost(self, prev_state: MDAState, succ_state: MDAState) -> MDACost:
@@ -297,10 +297,10 @@ class MDAProblem(GraphProblem):
 
         lab_transfer_cost = succ_state.current_site.tests_transfer_cost if \
             isinstance(succ_state.current_site, Laboratory) else 0
-        lab_revisit_cost = succ_state.current_site.revisit_extra_cost if\
+        lab_revisit_cost = succ_state.current_site.revisit_extra_cost if \
             isinstance(succ_state.current_site, Laboratory) else 0
         monetary_cost = gas_price * (drive_gas_consumption + fridges_gas_consumption) * dis + is_lab_ind * (
-                    tests_ind * lab_transfer_cost + revisit_ind * lab_revisit_cost)
+                tests_ind * lab_transfer_cost + revisit_ind * lab_revisit_cost)
 
         # lab_fee = 0
         # if isinstance(succ_state.current_site, Laboratory):
