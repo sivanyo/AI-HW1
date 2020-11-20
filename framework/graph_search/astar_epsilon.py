@@ -98,8 +98,7 @@ class AStarEpsilon(AStar):
                 self.open.push_node(node)
         #
         if self.use_close:
-            self.close.add_node(min_node
-                                )
+            self.close.add_node(min_node)
         return min_node
 
         # raise NotImplementedError  # TODO: remove!

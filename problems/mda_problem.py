@@ -302,27 +302,6 @@ class MDAProblem(GraphProblem):
         monetary_cost = gas_price * (drive_gas_consumption + fridges_gas_consumption) * dis + is_lab_ind * (
                 tests_ind * lab_transfer_cost + revisit_ind * lab_revisit_cost)
 
-        # lab_fee = 0
-        # if isinstance(succ_state.current_site, Laboratory):
-        #     if prev_state.tests_on_ambulance:
-        #         lab_fee += succ_state.current_site.tests_transfer_cost
-        #     # check if we revisit (extra cost)
-        #     if succ_state.current_site in prev_state.visited_labs:
-        #         lab_fee += succ_state.current_site.revisit_extra_cost
-        # gas_price = self.problem_input.gas_liter_price
-        #
-        # active_fridges = math.ceil(
-        #     prev_state.get_total_nr_tests_taken_and_stored_on_ambulance() / self.problem_input.ambulance.fridge_capacity)
-        #
-        # fridges_gas_consumption = sum(
-        #     self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter[i] for i in range(active_fridges))
-        #
-        # # calc the cost of the ride = (drive gas consumption + fridges consumption ) * gas price
-        # temp = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter * dis + fridges_gas_consumption
-        # gas_for_ride = self.problem_input.gas_liter_price * temp
-        #
-        # monetary_cost = lab_fee + gas_for_ride
-
         test_travel_cost = dis * prev_state.get_total_nr_tests_taken_and_stored_on_ambulance()
 
         return MDACost(dis, monetary_cost, test_travel_cost, self.optimization_objective)
