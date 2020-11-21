@@ -195,8 +195,8 @@ class MDATestsTravelDistToNearestLabHeuristic(HeuristicFunction):
 
         tmp = 0
         if state.tests_on_ambulance is not frozenset():
-            tmp = air_dist_to_closest_lab(state.current_site.location) * sum(tests.nr_roommates for tests in
-                                                                             state.tests_on_ambulance)
+            tmp = air_dist_to_closest_lab(state.current_site.location) * \
+                  state.get_total_nr_tests_taken_and_stored_on_ambulance()
 
         return tmp + sum(air_dist_to_closest_lab(app.location) * app.nr_roommates for app in
                          self.problem.get_reported_apartments_waiting_to_visit(state))
