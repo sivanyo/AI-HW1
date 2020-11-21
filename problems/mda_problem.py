@@ -289,11 +289,11 @@ class MDAProblem(GraphProblem):
 
         fridges_gas_consumption = sum(
             self.problem_input.ambulance.fridges_gas_consumption_liter_per_meter[i] for i in range(active_fridges))
-        drive_gas_consumption = float(self.problem_input.ambulance.drive_gas_consumption_liter_per_meter)
+        drive_gas_consumption = self.problem_input.ambulance.drive_gas_consumption_liter_per_meter
 
         is_lab_ind = 1 if isinstance(succ_state.current_site, Laboratory) else 0
-        revisit_ind = 1 if succ_state.current_site in succ_state.visited_labs else 0
-        tests_ind = 1 if succ_state.tests_on_ambulance else 0
+        revisit_ind = 1 if succ_state.current_site in prev_state.visited_labs else 0
+        tests_ind = 1 if prev_state.tests_on_ambulance else 0
 
         lab_transfer_cost = succ_state.current_site.tests_transfer_cost if \
             isinstance(succ_state.current_site, Laboratory) else 0

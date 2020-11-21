@@ -149,9 +149,7 @@ class MDAMSTAirDistHeuristic(HeuristicFunction):
         graph = nx.Graph()
         # can I remove this line ?
         # graph.add_nodes_from(junctions)
-        graph.add_weighted_edges_from([(junc1, junc2,
-                                        self.cached_air_distance_calculator.get_air_distance_between_junctions(junc1,
-                                                                                                               junc2))
+        graph.add_weighted_edges_from([(junc1, junc2, junc1.calc_air_distance_from(junc2))
                                        for junc1 in junctions for junc2 in junctions if junc1.index < junc2.index])
         min_span_tree = nx.minimum_spanning_tree(graph, 'weight')
 
@@ -188,31 +186,6 @@ class MDATestsTravelDistToNearestLabHeuristic(HeuristicFunction):
 
         labs = self.problem.problem_input.laboratories
 
-        # total_dist_cost =0.0
-        # for app in self.problem.get_reported_apartments_waiting_to_visit(state):
-        #     nearest_lab = self.problem.problem_input.laboratories[0]
-        #     min_dist = self.cached_air_distance_calculator.get_air_distance_between_junctions(nearest_lab.location,
-        #                                                                                       state.current_location)
-        #     for lab in self.problem.problem_input.laboratories:
-        #         if self.cached_air_distance_calculator.get_air_distance_between_junctions(lab.location,
-        #                            state.current_location) < min_dist:
-        #            min_dist = self.cached_air_distance_calculator.get_air_distance_between_junctions(lab.location,
-        #                                                                       state.current_location)
-        #            nearest_lab = lab
-        #     total_dist_cost += app.location.calc_air_distance_from(nearest_lab.location) *
-
-        # nearest_lab = self.problem.problem_input.laboratories[0]
-        # min_dist = self.cached_air_distance_calculator.get_air_distance_between_junctions(nearest_lab,
-        #                                                                                   state.current_location)
-        # state.get_current_location_short_description()
-        #
-        # for lab in self.problem.problem_input.laboratories:
-        #     if self.cached_air_distance_calculator.get_air_distance_between_junctions(lab.location,
-        #                                                                         state.current_location) < min_dist:
-        #         min_dist = self.cached_air_distance_calculator.get_air_distance_between_junctions(lab.location,
-        #                                                                                           state.current_location)
-        #         nearest_lab = lab
-
         def air_dist_to_closest_lab(junction: Junction) -> float:
             """
             Returns the distance between `junction` and the laboratory that is closest to `junction`.
@@ -220,10 +193,8 @@ class MDATestsTravelDistToNearestLabHeuristic(HeuristicFunction):
             return min(self.cached_air_distance_calculator.get_air_distance_between_junctions(junction, lab.location)
                        for lab in labs)
 
-        tmp = 0
-        if state.tests_on_ambulance is not frozenset():
-            tmp = air_dist_to_closest_lab(state.current_site.location) * sum(tests.nr_roommates for tests in
-                                                                             state.tests_on_ambulance)
+        tmp = air_dist_to_closest_lab(state.current_site.location) * sum(tests.nr_roommates for tests in
+                                                                         state.tests_on_ambulance)
 
         return tmp + sum(air_dist_to_closest_lab(app.location) * app.nr_roommates for app in
                          self.problem.get_reported_apartments_waiting_to_visit(state))
