@@ -231,7 +231,6 @@ class MDAProblem(GraphProblem):
                                 state_to_expand.visited_labs)
                 yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "visit " + app.reporter_name)
 
-        # if 1 :#not isinstance(state_to_expand.current_site, Laboratory): // TODO HOLLY BUG
         for lab in self.problem_input.laboratories:
             if lab not in state_to_expand.visited_labs:
                 succ = MDAState(lab, frozenset(), frozenset.union(state_to_expand.tests_transferred_to_lab,
@@ -279,7 +278,6 @@ class MDAProblem(GraphProblem):
         """
         dis = self.map_distance_finder.get_map_cost_between(prev_state.current_location, succ_state.current_location)
         if dis is None:
-            # print('im here')
             return MDACost(float('inf'), float('inf'), float('inf'), self.optimization_objective)
 
         # calc the fees of the lab
