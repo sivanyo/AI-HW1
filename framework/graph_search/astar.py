@@ -50,12 +50,13 @@ class AStar(BestFirstSearch):
         Notice: You may use `search_node.g_cost`, `self.heuristic_weight`, and `self.heuristic_function`.
         """
 
-        result = (self.heuristic_function.estimate(search_node.state) * self.heuristic_weight) + (
-                1 - self.heuristic_weight) * search_node.g_cost  # or g_cost ?!!?!?!!?
+        return ((1 - self.heuristic_weight) * search_node.g_cost) + (self.heuristic_weight *
+                                                                     self.heuristic_function.estimate(search_node.state)
+                                                                     )
 
-        # raise NotImplementedError  # TODO: remove this line!
-
-        return result
+        # result = (self.heuristic_function.estimate(search_node.state) * self.heuristic_weight) + (
+        #         1 - self.heuristic_weight) * search_node.g_cost  # or g_cost ?!!?!?!!?
+        # return result # TODO
 
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
         """
@@ -77,17 +78,35 @@ class AStar(BestFirstSearch):
                   but still could be improved.
         """
 
-        if self.close.has_state(successor_node.state):
-            node = self.close.get_node_by_state(successor_node.state)
-            if successor_node.g_cost <= node.g_cost:
-                self.close.remove_node(node)
+        state = successor_node.state
+        if self.open.has_state(state):
+            if successor_node.g_cost < self.open.get_node_by_state(state).g_cost:
+                self.open.extract_node(self.open.get_node_by_state(state))
+                self.open.push_node(successor_node)
             else:
-                return
+                return  # useless but helpful to compare with the algo from class
+        else:
+            if self.close.has_state(state):
+                if successor_node.g_cost < self.close.get_node_by_state(state).g_cost:
+                    self.close.remove_node(self.close.get_node_by_state(state))
+                    self.open.push_node(successor_node)
+                else:
+                    return  # useless but helpful to compare with the algo from class
+            else:
+                self.open.push_node(successor_node)
 
-        if self.open.has_state(successor_node.state):
-            node = self.open.get_node_by_state(successor_node.state)
-            if successor_node.g_cost <= node.g_cost:
-                self.open.extract_node(node)
 
-        if not self.open.has_state(successor_node.state):
-            self.open.push_node(successor_node)
+        ## version 2  #  TODO choose one version and delete the other
+        # state = successor_node.state
+        # if self.close.has_state(state):
+        #     if successor_node.g_cost < self.close.get_node_by_state(state).g_cost:
+        #         self.close.remove_node(self.close.get_node_by_state(state))
+        #     else:
+        #         return
+        #
+        # if self.open.has_state(state) and self.open.get_node_by_state(state).g_cost > successor_node.g_cost:
+        #     self.open.extract_node(self.open.get_node_by_state(state))
+        #
+        # if not self.open.has_state(state):
+        #     self.open.push_node(successor_node)
+

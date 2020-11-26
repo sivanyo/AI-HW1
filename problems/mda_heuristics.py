@@ -184,21 +184,23 @@ class MDATestsTravelDistToNearestLabHeuristic(HeuristicFunction):
         assert isinstance(self.problem, MDAProblem)
         assert isinstance(state, MDAState)
 
-        labs = self.problem.problem_input.laboratories
+        # labs = self.problem.problem_input.laboratories
 
         def air_dist_to_closest_lab(junction: Junction) -> float:
             """
             Returns the distance between `junction` and the laboratory that is closest to `junction`.
             """
-            return min(self.cached_air_distance_calculator.get_air_distance_between_junctions(junction, lab.location)
-                       for lab in labs)
+            return min(self.cached_air_distance_calculator.get_air_distance_between_junctions(lab.location, junction)
+                       for lab in self.problem.problem_input.laboratories)
 
-        tmp = 0
-        if state.tests_on_ambulance is not frozenset():
-            tmp = air_dist_to_closest_lab(state.current_site.location) * \
-                  state.get_total_nr_tests_taken_and_stored_on_ambulance()
+        # if state.tests_on_ambulance is not frozenset():
+        #     tmp = air_dist_to_closest_lab(state.current_site.location) * \
+        #           state.get_total_nr_tests_taken_and_stored_on_ambulance()
 
-        return tmp + sum(air_dist_to_closest_lab(app.location) * app.nr_roommates for app in
-                         self.problem.get_reported_apartments_waiting_to_visit(state))
+        return state.get_total_nr_tests_taken_and_stored_on_ambulance()*air_dist_to_closest_lab(state.current_location)\
+            + sum(air_dist_to_closest_lab(ap.location)*ap.nr_roommates for ap in
+                  self.problem.get_reported_apartments_waiting_to_visit(state))
 
-        # raise NotImplementedError  # TODO: remove this line!
+        # tmp = sum(air_dist_to_closest_lab(ap.location) * ap.nr_roommates * TODO delete
+        #           for ap in self.problem.get_reported_apartments_waiting_to_visit(state))
+        # return tmp + len(state.tests_on_ambulance) * air_dist_to_closest_lab(state.current_location)

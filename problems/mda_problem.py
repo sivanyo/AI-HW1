@@ -104,7 +104,7 @@ class MDAState(GraphProblemState):
          Notice that this method can be implemented using a single line of code - do so!
          Use python's built-it `sum()` function.
          Notice that `sum()` can receive an *ITERATOR* as argument; That is, you can simply write something like this:
-        >>> sum(<some expression using item> for item in some_collection_of_items)
+        # >>> sum(<some expression using item> for item in some_collection_of_items)
         """
         # raise NotImplementedError  # TODO: remove this line.
         return sum([item.nr_roommates for item in self.tests_on_ambulance])
@@ -244,7 +244,6 @@ class MDAProblem(GraphProblem):
                                                 state_to_expand.tests_on_ambulance),
                                 state_to_expand.nr_matoshim_on_ambulance, state_to_expand.visited_labs)
                 yield OperatorResult(succ, self.get_operator_cost(state_to_expand, succ), "go to lab " + lab.name)
-        # raise NotImplementedError  # TODO: remove this line!
 
     def get_operator_cost(self, prev_state: MDAState, succ_state: MDAState) -> MDACost:
         """
@@ -319,9 +318,6 @@ class MDAProblem(GraphProblem):
         # it has no tests on the ambulance
 
         return state.tests_transferred_to_lab == set(self.problem_input.reported_apartments)
-        # return isinstance(state.current_site, Laboratory) and \
-        #        len(self.get_reported_apartments_waiting_to_visit(state)) == 0 and \
-        #        state.tests_on_ambulance == frozenset()
 
     def get_zero_cost(self) -> Cost:
         """
@@ -348,14 +344,13 @@ class MDAProblem(GraphProblem):
                 generated set.
             Note: This method can be implemented using a single line of code. Try to do so.
         """
-        # raise NotImplementedError  # TODO: remove this line!
 
-        l1 = set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance)
-        k = list(l1 - set(state.tests_transferred_to_lab))
-        k.sort(key=lambda x: x.report_id)
-        return k
+        tmp = (list((set(self.problem_input.reported_apartments) - set(state.tests_on_ambulance)) - set(
+            state.tests_transferred_to_lab)))
+        tmp.sort(key=lambda ap: ap.report_id)
+        return tmp
         # TODO : change to 1 line !!! return (list(set(self.problem_input.reported_apartments) - set(
-        #  state.tests_transferred_to_lab) - set(state.tests_on_ambulance))).sort(key=lambda x:x.report_id)
+        #  state.tests_transferred_to_lab) - set(state.tests_on_ambulance))).sort(key=lambda x:x.report_id) -not working
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
         """
